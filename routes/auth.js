@@ -73,7 +73,7 @@ router.post('/login', [
 
     // Find user
     const [users] = await pool.execute(
-      'SELECT id, username, password, display_name, is_verified FROM users WHERE username = ?',
+      'SELECT id, username, password, display_name, is_verified, vip, trust FROM users WHERE username = ?',
       [username]
     );
 
@@ -98,7 +98,9 @@ router.post('/login', [
         id: user.id,
         username: user.username,
         displayName: user.display_name,
-        isVerified: user.is_verified
+        isVerified: user.is_verified,
+        vip: user.vip || 0,
+        trust: user.trust || 0
       }
     });
   } catch (error) {
@@ -110,13 +112,25 @@ router.post('/login', [
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const user = req.user;
+    // Get fresh user data from database to include VIP info
+    const [users] = await pool.execute(
+      'SELECT id, username, display_name, is_verified, vip, trust FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = users[0];
     res.json({
       user: {
         id: user.id,
         username: user.username,
         displayName: user.display_name,
-        isVerified: user.is_verified
+        isVerified: user.is_verified,
+        vip: user.vip || 0,
+        trust: user.trust || 0
       }
     });
   } catch (error) {
