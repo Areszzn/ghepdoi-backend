@@ -73,7 +73,7 @@ router.post('/login', [
 
     // Find user
     const [users] = await pool.execute(
-      'SELECT id, username, password, display_name, is_verified, vip, trust FROM users WHERE username = ?',
+      'SELECT id, username, password, display_name, is_verified, vip, trust, role FROM users WHERE username = ?',
       [username]
     );
 
@@ -100,7 +100,8 @@ router.post('/login', [
         displayName: user.display_name,
         isVerified: user.is_verified,
         vip: user.vip || 0,
-        trust: user.trust || 0
+        trust: user.trust || 0,
+        role: user.role || 0
       }
     });
   } catch (error) {
@@ -109,12 +110,69 @@ router.post('/login', [
   }
 });
 
+// Admin Login
+router.post('/admin/login', [
+  body('username').trim().isLength({ min: 1 }),
+  body('password').exists()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { username, password } = req.body;
+
+    // Find user with admin role
+    const [users] = await pool.execute(
+      'SELECT id, username, password, display_name, is_verified, vip, trust, role FROM users WHERE username = ?',
+      [username]
+    );
+
+    if (users.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = users[0];
+
+    // Check if user has admin privileges (role = 1)
+    if (user.role !== 1) {
+      return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const token = generateToken(user.id);
+
+    res.json({
+      message: 'Admin login successful',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        displayName: user.display_name,
+        isVerified: user.is_verified,
+        vip: user.vip || 0,
+        trust: user.trust || 0,
+        role: user.role || 0
+      }
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ error: 'Admin login failed' });
+  }
+});
+
 // Get current user
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     // Get fresh user data from database to include VIP info
     const [users] = await pool.execute(
-      'SELECT id, username, display_name, is_verified, vip, trust FROM users WHERE id = ?',
+      'SELECT id, username, display_name, is_verified, vip, trust, role FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -130,7 +188,8 @@ router.get('/me', authenticateToken, async (req, res) => {
         displayName: user.display_name,
         isVerified: user.is_verified,
         vip: user.vip || 0,
-        trust: user.trust || 0
+        trust: user.trust || 0,
+        role: user.role || 0
       }
     });
   } catch (error) {

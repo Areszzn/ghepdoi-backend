@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authenticateAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, username, display_name, is_verified, vip, trust, created_at FROM users WHERE id = ?',
+      'SELECT id, username, display_name, is_verified, vip, trust, role, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -152,10 +152,10 @@ router.get('/balance', authenticateToken, async (req, res) => {
 
 // Admin endpoints
 // Get all users (admin only)
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateAdmin, async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, username, display_name, balance, vip, trust, is_verified, created_at, updated_at FROM users ORDER BY created_at DESC'
+      'SELECT id, username, display_name, balance, vip, trust, role, is_verified, created_at, updated_at FROM users ORDER BY created_at DESC'
     );
 
     res.json({

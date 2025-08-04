@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authenticateAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -30,7 +30,7 @@ router.get('/public', async (req, res) => {
 });
 
 // Get all settings
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateAdmin, async (req, res) => {
   try {
     const [settings] = await pool.execute(
       'SELECT * FROM setting ORDER BY name ASC'
@@ -47,7 +47,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get setting by name
-router.get('/:name', authenticateToken, async (req, res) => {
+router.get('/:name', authenticateAdmin, async (req, res) => {
   try {
     const { name } = req.params;
     
@@ -72,7 +72,7 @@ router.get('/:name', authenticateToken, async (req, res) => {
 
 // Create new setting
 router.post('/', [
-  authenticateToken,
+  authenticateAdmin,
   body('name').notEmpty().trim().isLength({ min: 1, max: 100 }),
   body('value').optional().trim()
 ], async (req, res) => {
@@ -122,7 +122,7 @@ router.post('/', [
 
 // Update setting by name
 router.put('/:name', [
-  authenticateToken,
+  authenticateAdmin,
   body('value').optional().trim()
 ], async (req, res) => {
   try {
@@ -167,7 +167,7 @@ router.put('/:name', [
 });
 
 // Delete setting by name
-router.delete('/:name', authenticateToken, async (req, res) => {
+router.delete('/:name', authenticateAdmin, async (req, res) => {
   try {
     const { name } = req.params;
 

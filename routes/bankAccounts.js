@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, authenticateAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -10,8 +10,18 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     let query, params;
 
-    // Check if this is an admin request (you can add admin check here)
+    // Check if this is an admin request
     if (req.query.admin === 'true') {
+      // Check if user has admin privileges
+      const [users] = await pool.execute(
+        'SELECT role FROM users WHERE id = ?',
+        [req.user.id]
+      );
+
+      if (users.length === 0 || users[0].role !== 1) {
+        return res.status(403).json({ error: 'Admin privileges required' });
+      }
+
       // Get all bank accounts with user information
       query = `
         SELECT b.id, b.user_id, b.tentaikhoan, b.sotaikhoan, b.tennganhang,

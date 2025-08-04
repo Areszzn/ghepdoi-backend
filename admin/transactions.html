@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Giao dịch - Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-cog"></i> Admin Panel</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="users.html"><i class="fas fa-users"></i> Quản lý Users</a></li>
+                <li><a href="banks.html"><i class="fas fa-university"></i> Tài khoản Ngân hàng</a></li>
+                <li><a href="transactions.html" class="active"><i class="fas fa-exchange-alt"></i> Giao dịch</a></li>
+                <li><a href="settings.html"><i class="fas fa-cogs"></i> Cài đặt</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Quản lý Giao dịch</h1>
+                <button class="btn btn-primary" onclick="showAddTransactionModal()">
+                    <i class="fas fa-plus"></i> Thêm Giao dịch
+                </button>
+            </header>
+
+            <!-- Filter Section -->
+            <div class="content-section">
+                <h3>Bộ lọc</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="filterStatus">Trạng thái</label>
+                        <select id="filterStatus" class="form-control" onchange="filterTransactions()">
+                            <option value="">Tất cả</option>
+                            <option value="pending">Chờ xử lý</option>
+                            <option value="processing">Đang xử lý</option>
+                            <option value="completed">Hoàn thành</option>
+                            <option value="cancelled">Đã hủy</option>
+                            <option value="failed">Thất bại</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterType">Loại giao dịch</label>
+                        <select id="filterType" class="form-control" onchange="filterTransactions()">
+                            <option value="">Tất cả</option>
+                            <option value="deposit">Nạp tiền</option>
+                            <option value="withdrawal">Rút tiền</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterUser">User</label>
+                        <select id="filterUser" class="form-control" onchange="filterTransactions()">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="content-section">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Loại</th>
+                                <th>Số tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Mô tả</th>
+                                <th>Mã tham chiếu</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-table">
+                            <tr>
+                                <td colspan="9" class="text-center">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Transaction Modal -->
+    <div id="transactionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Thêm Giao dịch</h2>
+                <span class="close" onclick="closeTransactionModal()">&times;</span>
+            </div>
+            <form id="transactionForm">
+                <input type="hidden" id="transactionId" value="">
+                
+                <div class="form-group">
+                    <label for="userId">User *</label>
+                    <select id="userId" class="form-control" required>
+                        <option value="">Chọn user...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bankAccountId">Tài khoản ngân hàng</label>
+                    <select id="bankAccountId" class="form-control">
+                        <option value="">Chọn tài khoản...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="type">Loại giao dịch *</label>
+                    <select id="type" class="form-control" required>
+                        <option value="">Chọn loại...</option>
+                        <option value="deposit">Nạp tiền</option>
+                        <option value="withdrawal">Rút tiền</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Số tiền *</label>
+                    <input type="number" id="amount" class="form-control" min="1000" step="1000" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Trạng thái *</label>
+                    <select id="status" class="form-control" required>
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="processing">Đang xử lý</option>
+                        <option value="completed">Hoàn thành</option>
+                        <option value="cancelled">Đã hủy</option>
+                        <option value="failed">Thất bại</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Mô tả</label>
+                    <textarea id="description" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="referenceNumber">Mã tham chiếu</label>
+                    <input type="text" id="referenceNumber" class="form-control">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeTransactionModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/transactions.js"></script>
+</body>
+</html>

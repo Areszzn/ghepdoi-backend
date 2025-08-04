@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt hệ thống - Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-cog"></i> Admin Panel</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="users.html"><i class="fas fa-users"></i> Quản lý Users</a></li>
+                <li><a href="banks.html"><i class="fas fa-university"></i> Tài khoản Ngân hàng</a></li>
+                <li><a href="transactions.html"><i class="fas fa-exchange-alt"></i> Giao dịch</a></li>
+                <li><a href="settings.html" class="active"><i class="fas fa-cogs"></i> Cài đặt</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Cài đặt hệ thống</h1>
+                <button class="btn btn-primary" onclick="showAddSettingModal()">
+                    <i class="fas fa-plus"></i> Thêm Cài đặt
+                </button>
+            </header>
+
+            <!-- Settings Table -->
+            <div class="content-section">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên cài đặt</th>
+                                <th>Giá trị</th>
+                                <th>Ngày tạo</th>
+                                <th>Cập nhật lần cuối</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="settings-table">
+                            <tr>
+                                <td colspan="6" class="text-center">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Settings -->
+            <div class="content-section">
+                <h2>Cài đặt nhanh</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div class="setting-card">
+                        <h3><i class="fas fa-tag"></i> Tên ứng dụng</h3>
+                        <div class="form-group">
+                            <input type="text" id="quick-name_app" class="form-control" placeholder="Tên ứng dụng">
+                            <button class="btn btn-primary btn-sm" onclick="updateQuickSetting('name_app')">Cập nhật</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-image"></i> Logo ứng dụng</h3>
+                        <div class="form-group">
+                            <input type="url" id="quick-logo_app" class="form-control" placeholder="URL logo">
+                            <button class="btn btn-primary btn-sm" onclick="updateQuickSetting('logo_app')">Cập nhật</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-image"></i> Background đăng nhập</h3>
+                        <div class="form-group">
+                            <input type="url" id="quick-bg_login" class="form-control" placeholder="URL background">
+                            <button class="btn btn-primary btn-sm" onclick="updateQuickSetting('bg_login')">Cập nhật</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-image"></i> Background đăng ký</h3>
+                        <div class="form-group">
+                            <input type="url" id="quick-bg_reg" class="form-control" placeholder="URL background">
+                            <button class="btn btn-primary btn-sm" onclick="updateQuickSetting('bg_reg')">Cập nhật</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Setting Modal -->
+    <div id="settingModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Thêm Cài đặt</h2>
+                <span class="close" onclick="closeSettingModal()">&times;</span>
+            </div>
+            <form id="settingForm">
+                <input type="hidden" id="settingId" value="">
+                
+                <div class="form-group">
+                    <label for="settingName">Tên cài đặt *</label>
+                    <input type="text" id="settingName" class="form-control" required>
+                    <small>Tên cài đặt phải là duy nhất</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="settingValue">Giá trị</label>
+                    <textarea id="settingValue" class="form-control" rows="4" placeholder="Nhập giá trị cài đặt"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeSettingModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>
