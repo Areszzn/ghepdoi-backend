@@ -29,10 +29,9 @@ const API_CONFIG = {
 const Utils = {
     // Format currency
     formatCurrency: (amount) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
+        // Convert to integer to remove decimal places, then format with dots
+        const integerAmount = Math.floor(amount);
+        return integerAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND';
     },
     
     // Format date
