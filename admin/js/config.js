@@ -1,6 +1,6 @@
 // API Configuration
 const API_CONFIG = {
-    BASE_URL: 'http://localhost:5000/api',
+    BASE_URL: process.env.BACKEND_URL,
     ENDPOINTS: {
         // Auth endpoints
         LOGIN: '/auth/admin/login',
