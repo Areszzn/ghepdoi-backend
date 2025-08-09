@@ -1,5 +1,8 @@
 // Dashboard functionality
 document.addEventListener('DOMContentLoaded', async () => {
+    // Show API URL in header
+    updateApiStatus();
+
     await loadDashboardData();
 });
 
@@ -114,5 +117,13 @@ async function loadRecentUsers() {
     } catch (error) {
         console.error('Error loading recent users:', error);
         Utils.showError('recent-users', error.message);
+    }
+}
+
+// Update API status in header
+function updateApiStatus() {
+    const apiUrlElement = document.getElementById('apiUrl');
+    if (apiUrlElement) {
+        apiUrlElement.textContent = API.getApiUrl();
     }
 }

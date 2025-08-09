@@ -1,7 +1,13 @@
 // API Configuration
 const API_CONFIG = {
-    BASE_URL: process.env.BACKEND_URL,
+    // Automatically detect environment
+    BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'https://api.ghepdoi.live/api'
+        : 'https://api.ghepdoi.live/api',
     ENDPOINTS: {
+        // Health check endpoint
+        HEALTH: '/health',
+
         // Auth endpoints
         LOGIN: '/auth/admin/login',
 
@@ -170,5 +176,42 @@ const API = {
     // DELETE request
     delete: (endpoint) => {
         return API.request(endpoint, { method: 'DELETE' });
+    },
+
+    // Check API connection
+    checkConnection: async () => {
+        try {
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.HEALTH, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return {
+                    success: true,
+                    message: data.message || 'API connected successfully',
+                    status: data.status || 'OK'
+                };
+            } else {
+                return {
+                    success: false,
+                    error: `HTTP ${response.status}: ${response.statusText}`
+                };
+            }
+        } catch (error) {
+            console.error('API Connection Error:', error);
+            return {
+                success: false,
+                error: error.message || 'Cannot connect to API server'
+            };
+        }
+    },
+
+    // Get current API URL
+    getApiUrl: () => {
+        return API_CONFIG.BASE_URL;
     }
 };
