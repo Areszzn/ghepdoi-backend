@@ -21,7 +21,7 @@ const ENV_CONFIG = {
         try {
             // Get config from server - use absolute URL for Live Server compatibility
             const configUrl = window.location.hostname === '127.0.0.1' && window.location.port === '5501'
-                ? 'http://localhost:5000/api/config'  // Live Server
+                ? 'https://api.ghepdoi.live/api/config'  // Live Server
                 : '/api/config';  // Direct server access
 
             const response = await fetch(configUrl);
