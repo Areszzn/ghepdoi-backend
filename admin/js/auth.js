@@ -145,27 +145,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Don't check auth on login page
     if (!window.location.pathname.includes('login.html')) {
         // Wait for config to load before starting auth checks
-        const waitForConfig = () => {
-            if (window.ENV_CONFIG && ENV_CONFIG.isConfigLoaded()) {
-                Auth.checkAuth();
-                Auth.startTokenCheck();
-                Auth.startConnectionMonitor();
+        API.waitForConfig().then(() => {
+            Auth.checkAuth();
+            Auth.startTokenCheck();
+            Auth.startConnectionMonitor();
 
-                // Initial token verification (delayed to avoid immediate logout)
-                setTimeout(async () => {
-                    if (Auth.isAuthenticated()) {
-                        const isValid = await Auth.verifyToken();
-                        if (!isValid) {
-                            Auth.forceLogout();
-                        }
+            // Initial token verification (delayed to avoid immediate logout)
+            setTimeout(async () => {
+                if (Auth.isAuthenticated()) {
+                    const isValid = await Auth.verifyToken();
+                    if (!isValid) {
+                        Auth.forceLogout();
                     }
-                }, 10000); // Check after 10 seconds
-            } else {
-                // Retry after 500ms if config not loaded
-                setTimeout(waitForConfig, 500);
+                }
+            }, 10000); // Check after 10 seconds
+        }).catch(error => {
+            console.error('Failed to load config:', error);
+            if (window.Toast) {
+                Toast.error('Không thể tải cấu hình hệ thống', 'Lỗi cấu hình');
             }
-        };
-
-        waitForConfig();
+        });
     }
 });

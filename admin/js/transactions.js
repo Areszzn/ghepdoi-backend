@@ -1,8 +1,16 @@
 // Transactions management functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUsers();
-    await loadBankAccounts();
-    await loadTransactions();
+    try {
+        await API.waitForConfig();
+        await loadUsers();
+        await loadBankAccounts();
+        await loadTransactions();
+    } catch (error) {
+        console.error('Failed to initialize transactions page:', error);
+        if (window.Toast) {
+            Toast.error('Không thể khởi tạo trang quản lý giao dịch', 'Lỗi hệ thống');
+        }
+    }
 });
 
 let currentTransactions = [];

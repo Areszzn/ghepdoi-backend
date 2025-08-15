@@ -5,6 +5,12 @@ const API_CONFIG = {
         if (!window.ENV_CONFIG) {
             throw new Error('ENV_CONFIG not available. Make sure env.js is loaded first.');
         }
+
+        // Wait for config to be loaded
+        if (!ENV_CONFIG.isConfigLoaded()) {
+            throw new Error('Configuration not loaded yet. Please wait for config to load.');
+        }
+
         return ENV_CONFIG.getBackendUrl();
     },
 
@@ -163,8 +169,11 @@ const API = {
         localStorage.removeItem('admin_token');
     },
     
-    // Make API request
+    // Make API request with config wait
     request: async (endpoint, options = {}) => {
+        // Wait for config to be loaded
+        await API.waitForConfig();
+
         const url = API_CONFIG.BASE_URL + endpoint;
         const token = API.getToken();
 
@@ -244,9 +253,22 @@ const API = {
         }
     },
 
+    // Wait for config to be loaded
+    waitForConfig: async (maxWaitMs = 10000) => {
+        const startTime = Date.now();
+
+        while (!window.ENV_CONFIG || !ENV_CONFIG.isConfigLoaded()) {
+            if (Date.now() - startTime > maxWaitMs) {
+                throw new Error('Timeout waiting for configuration to load');
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    },
+
     // Check connection status
     checkConnection: async () => {
         try {
+            await API.waitForConfig();
             const response = await fetch(API_CONFIG.BASE_URL + '/health', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },

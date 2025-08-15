@@ -1,6 +1,14 @@
 // Users management functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUsers();
+    try {
+        await API.waitForConfig();
+        await loadUsers();
+    } catch (error) {
+        console.error('Failed to initialize users page:', error);
+        if (window.Toast) {
+            Toast.error('Không thể khởi tạo trang quản lý người dùng', 'Lỗi hệ thống');
+        }
+    }
 });
 
 let currentUsers = [];

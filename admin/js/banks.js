@@ -1,7 +1,15 @@
 // Banks management functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUsers();
-    await loadBanks();
+    try {
+        await API.waitForConfig();
+        await loadUsers();
+        await loadBanks();
+    } catch (error) {
+        console.error('Failed to initialize banks page:', error);
+        if (window.Toast) {
+            Toast.error('Không thể khởi tạo trang quản lý ngân hàng', 'Lỗi hệ thống');
+        }
+    }
 });
 
 let currentBanks = [];

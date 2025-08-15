@@ -185,8 +185,16 @@
                 return;
             }
 
-            // Check API connection first
-            await checkApiConnection();
+            // Wait for config then check API connection
+            try {
+                await API.waitForConfig();
+                await checkApiConnection();
+            } catch (error) {
+                console.error('Failed to load config:', error);
+                const connectionStatus = document.getElementById('connectionStatus');
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Lỗi cấu hình: ' + error.message;
+            }
 
             const loginForm = document.getElementById('loginForm');
             const loginBtn = document.getElementById('loginBtn');
@@ -252,8 +260,21 @@
                 return;
             }
 
-            // Show API URL
-            apiUrl.textContent = API.getApiUrl();
+            try {
+                // Wait for config if not loaded yet
+                if (!ENV_CONFIG.isConfigLoaded()) {
+                    await API.waitForConfig();
+                }
+
+                // Show API URL
+                apiUrl.textContent = API.getApiUrl();
+            } catch (error) {
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Lỗi cấu hình: ' + error.message;
+                apiUrl.textContent = 'Lỗi cấu hình';
+                loginBtn.disabled = true;
+                return;
+            }
 
             try {
                 const result = await API.checkConnection();

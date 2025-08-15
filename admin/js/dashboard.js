@@ -1,9 +1,19 @@
 // Dashboard functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    // Show API URL in header
-    updateApiStatus();
+    try {
+        // Wait for config to load before accessing API
+        await API.waitForConfig();
 
-    await loadDashboardData();
+        // Show API URL in header
+        updateApiStatus();
+
+        await loadDashboardData();
+    } catch (error) {
+        console.error('Failed to initialize dashboard:', error);
+        if (window.Toast) {
+            Toast.error('Không thể khởi tạo dashboard', 'Lỗi hệ thống');
+        }
+    }
 });
 
 async function loadDashboardData() {

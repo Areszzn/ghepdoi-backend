@@ -19,8 +19,12 @@ const ENV_CONFIG = {
         }
 
         try {
-            // Get config from server - no fallback
-            const response = await fetch('/api/config');
+            // Get config from server - use absolute URL for Live Server compatibility
+            const configUrl = window.location.hostname === '127.0.0.1' && window.location.port === '5501'
+                ? 'http://localhost:5000/api/config'  // Live Server
+                : '/api/config';  // Direct server access
+
+            const response = await fetch(configUrl);
             if (response.ok) {
                 const data = await response.json();
 
@@ -72,7 +76,12 @@ const ENV_CONFIG = {
 
     // Debug mode (only in development)
     isDebugMode: () => {
-        return ENV_CONFIG.getEnvironment() === 'development';
+        try {
+            return ENV_CONFIG.getEnvironment() === 'development';
+        } catch (error) {
+            // Fallback to hostname detection if config not loaded
+            return ENV_CONFIG.isDevelopment();
+        }
     },
 
     // Check if config is loaded

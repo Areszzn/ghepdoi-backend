@@ -1,7 +1,15 @@
 // Settings management functionality
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadSettings();
-    await loadQuickSettings();
+    try {
+        await API.waitForConfig();
+        await loadSettings();
+        await loadQuickSettings();
+    } catch (error) {
+        console.error('Failed to initialize settings page:', error);
+        if (window.Toast) {
+            Toast.error('Không thể khởi tạo trang cài đặt', 'Lỗi hệ thống');
+        }
+    }
 });
 
 let currentSettings = [];
