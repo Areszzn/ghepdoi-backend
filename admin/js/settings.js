@@ -44,16 +44,26 @@ async function loadSettings() {
 }
 
 async function loadQuickSettings() {
-    const quickSettings = ['name_app', 'logo_app', 'bg_login', 'bg_reg'];
-    
+    const quickSettings = ['name_app', 'logo_app', 'bg_login', 'bg_reg', 'cancel_bank'];
+
     for (const settingName of quickSettings) {
         try {
             const response = await API.get(API_CONFIG.ENDPOINTS.SETTING_BY_NAME.replace(':name', settingName));
             if (response.data) {
-                document.getElementById(`quick-${settingName}`).value = response.data.value || '';
+                const element = document.getElementById(`quick-${settingName}`);
+                if (element) {
+                    element.value = response.data.value || (settingName === 'cancel_bank' ? 'true' : '');
+                }
             }
         } catch (error) {
             console.log(`Setting ${settingName} not found, will be created when updated`);
+            // Set default value for cancel_bank if not found
+            if (settingName === 'cancel_bank') {
+                const element = document.getElementById(`quick-${settingName}`);
+                if (element) {
+                    element.value = 'true';
+                }
+            }
         }
     }
 }
@@ -118,11 +128,12 @@ function closeSettingModal() {
 async function deleteSetting(settingId) {
     const setting = currentSettings.find(s => s.id === settingId);
     if (!setting) return;
-    
-    if (!confirm(`Bạn có chắc chắn muốn xóa cài đặt "${setting.name}"?`)) {
+
+    const confirmed = await Utils.confirmDelete(`cài đặt "${setting.name}"`);
+    if (!confirmed) {
         return;
     }
-    
+
     try {
         await API.delete(API_CONFIG.ENDPOINTS.SETTING_BY_NAME.replace(':name', setting.name));
         Utils.showSuccess('Xóa cài đặt thành công');

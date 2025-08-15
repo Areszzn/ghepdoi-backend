@@ -66,10 +66,37 @@ app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     message: 'Deposit & Withdrawal API is running',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Config endpoint for admin
+app.get('/api/config', (req, res) => {
+  // Validate required environment variables
+  if (!process.env.BACKEND_URL) {
+    return res.status(500).json({
+      success: false,
+      error: 'BACKEND_URL not configured in .env file'
+    });
+  }
+
+  if (!process.env.FRONTEND_URL) {
+    return res.status(500).json({
+      success: false,
+      error: 'FRONTEND_URL not configured in .env file'
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    config: {
+      backendUrl: process.env.BACKEND_URL,
+      frontendUrl: process.env.FRONTEND_URL,
+      environment: process.env.NODE_ENV || 'development'
+    }
   });
 });
 

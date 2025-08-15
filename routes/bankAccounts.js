@@ -299,8 +299,8 @@ router.post('/admin', [
 });
 
 // Update bank account (admin only)
-router.put('/:id', [
-  authenticateToken,
+router.put('/admin/:id', [
+  authenticateAdmin,
   body('user_id').optional().isInt({ min: 1 }),
   body('tentaikhoan').optional().trim().isLength({ min: 1 }),
   body('sotaikhoan').optional().isInt({ min: 1 }),
@@ -392,7 +392,7 @@ router.put('/:id', [
 });
 
 // Delete bank account (admin only)
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/admin/:id', authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 

@@ -1,9 +1,13 @@
 // API Configuration
 const API_CONFIG = {
-    // Automatically detect environment
-    BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'https://api.ghepdoi.live/api'
-        : 'https://api.ghepdoi.live/api',
+    // Dynamic URL based on environment - no fallback
+    get BASE_URL() {
+        if (!window.ENV_CONFIG) {
+            throw new Error('ENV_CONFIG not available. Make sure env.js is loaded first.');
+        }
+        return ENV_CONFIG.getBackendUrl();
+    },
+
     ENDPOINTS: {
         // Health check endpoint
         HEALTH: '/health',
@@ -17,7 +21,7 @@ const API_CONFIG = {
 
         // Bank account endpoints
         BANKS: '/bank-accounts?admin=true',
-        BANK_BY_ID: '/bank-accounts/:id',
+        BANK_BY_ID: '/bank-accounts/admin/:id',
         BANK_CREATE: '/bank-accounts/admin',
 
         // Transaction endpoints
@@ -70,12 +74,56 @@ const Utils = {
     
     // Show success message
     showSuccess: (message) => {
-        alert('Thành công: ' + message);
+        if (window.Toast) {
+            Toast.success(message);
+        } else {
+            alert('Thành công: ' + message);
+        }
     },
-    
+
     // Show error message
     showErrorMessage: (message) => {
-        alert('Lỗi: ' + message);
+        if (window.Toast) {
+            Toast.error(message);
+        } else {
+            alert('Lỗi: ' + message);
+        }
+    },
+
+    // Show warning message
+    showWarning: (message) => {
+        if (window.Toast) {
+            Toast.warning(message);
+        } else {
+            alert('Cảnh báo: ' + message);
+        }
+    },
+
+    // Show info message
+    showInfo: (message) => {
+        if (window.Toast) {
+            Toast.info(message);
+        } else {
+            alert('Thông tin: ' + message);
+        }
+    },
+
+    // Confirmation dialog
+    confirm: async (message, title = 'Xác nhận') => {
+        if (window.Confirm) {
+            return await Confirm.show(message, title);
+        } else {
+            return confirm(message);
+        }
+    },
+
+    // Delete confirmation
+    confirmDelete: async (itemName = 'mục này') => {
+        if (window.Confirm) {
+            return await Confirm.delete(itemName);
+        } else {
+            return confirm(`Bạn có chắc chắn muốn xóa ${itemName}? Hành động này không thể hoàn tác.`);
+        }
     },
     
     // Get status badge HTML
@@ -119,14 +167,14 @@ const API = {
     request: async (endpoint, options = {}) => {
         const url = API_CONFIG.BASE_URL + endpoint;
         const token = API.getToken();
-        
+
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
                 ...(token && { 'Authorization': `Bearer ${token}` })
             }
         };
-        
+
         const finalOptions = {
             ...defaultOptions,
             ...options,
@@ -135,9 +183,16 @@ const API = {
                 ...options.headers
             }
         };
-        
+
         try {
             const response = await fetch(url, finalOptions);
+
+            // Check for authentication errors
+            if (response.status === 401 || response.status === 403) {
+                API.handleAuthError(response.status);
+                throw new Error('Authentication failed');
+            }
+
             const data = await response.json();
 
             if (!response.ok) {
@@ -147,8 +202,59 @@ const API = {
 
             return data;
         } catch (error) {
+            // Handle network errors
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                API.handleNetworkError();
+                throw new Error('Không thể kết nối đến server');
+            }
+
             console.error('API Error:', error);
             throw error;
+        }
+    },
+
+    // Handle authentication errors
+    handleAuthError: (status) => {
+        console.warn(`Authentication error: ${status}`);
+
+        // Remove invalid token
+        API.removeToken();
+
+        // Show notification if available
+        if (window.Toast) {
+            if (status === 401) {
+                Toast.warning('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'Hết phiên');
+            } else if (status === 403) {
+                Toast.error('Bạn không có quyền truy cập. Vui lòng đăng nhập lại.', 'Không có quyền');
+            }
+        }
+
+        // Redirect to login after a short delay
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+    },
+
+    // Handle network errors
+    handleNetworkError: () => {
+        console.warn('Network connection error');
+
+        if (window.Toast) {
+            Toast.error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.', 'Lỗi kết nối');
+        }
+    },
+
+    // Check connection status
+    checkConnection: async () => {
+        try {
+            const response = await fetch(API_CONFIG.BASE_URL + '/health', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 5000
+            });
+            return response.ok;
+        } catch (error) {
+            return false;
         }
     },
     
@@ -213,5 +319,14 @@ const API = {
     // Get current API URL
     getApiUrl: () => {
         return API_CONFIG.BASE_URL;
-    }
+    },
+
+    // Set API URL (for development/testing)
+    setApiUrl: (url) => {
+        API_CONFIG.BASE_URL = url.endsWith('/api') ? url : url + '/api';
+        console.log('API URL updated to:', API_CONFIG.BASE_URL);
+    },
+
 };
+
+// API configuration loaded

@@ -171,12 +171,16 @@
         </div>
     </div>
 
+    <script src="js/env.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/confirm.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Wait for all scripts to load
+        window.addEventListener('load', async () => {
             // Check if already logged in
-            if (API.getToken()) {
+            if (typeof API !== 'undefined' && API.getToken()) {
                 window.location.href = 'index.html';
                 return;
             }
@@ -238,6 +242,15 @@
             const apiInfo = document.getElementById('apiInfo');
             const apiUrl = document.getElementById('apiUrl');
             const loginBtn = document.getElementById('loginBtn');
+
+            // Check if API is defined
+            if (typeof API === 'undefined') {
+                connectionStatus.className = 'connection-status disconnected';
+                connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Lỗi: API chưa được tải';
+                apiUrl.textContent = 'Không xác định';
+                loginBtn.disabled = true;
+                return;
+            }
 
             // Show API URL
             apiUrl.textContent = API.getApiUrl();

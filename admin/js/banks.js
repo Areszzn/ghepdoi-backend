@@ -92,11 +92,12 @@ function closeBankModal() {
 async function deleteBank(bankId) {
     const bank = currentBanks.find(b => b.id === bankId);
     if (!bank) return;
-    
-    if (!confirm(`Bạn có chắc chắn muốn xóa tài khoản "${bank.tentaikhoan}"?`)) {
+
+    const confirmed = await Utils.confirmDelete(`tài khoản "${bank.tentaikhoan}"`);
+    if (!confirmed) {
         return;
     }
-    
+
     try {
         await API.delete(API_CONFIG.ENDPOINTS.BANK_BY_ID.replace(':id', bankId));
         Utils.showSuccess('Xóa tài khoản ngân hàng thành công');

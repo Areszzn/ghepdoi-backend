@@ -9,8 +9,8 @@ const router = express.Router();
 router.get('/public', async (req, res) => {
   try {
     const [settings] = await pool.execute(
-      'SELECT name, value FROM setting WHERE name IN (?, ?, ?, ?) ORDER BY name ASC',
-      ['name_app', 'logo_app', 'bg_login', 'bg_reg']
+      'SELECT name, value FROM setting WHERE name IN (?, ?, ?, ?, ?) ORDER BY name ASC',
+      ['name_app', 'logo_app', 'bg_login', 'bg_reg', 'cancel_bank']
     );
 
     // Convert to key-value object for easier frontend usage
@@ -18,6 +18,11 @@ router.get('/public', async (req, res) => {
     settings.forEach(setting => {
       settingsObj[setting.name] = setting.value;
     });
+
+    // Set default value for cancel_bank if not found
+    if (!settingsObj.cancel_bank) {
+      settingsObj.cancel_bank = 'true';
+    }
 
     res.json({
       success: true,

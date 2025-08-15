@@ -236,6 +236,17 @@ router.put('/:id/cancel', authenticateToken, async (req, res) => {
   try {
     const transactionId = req.params.id;
 
+    // Check if cancel_bank setting allows cancellation
+    const [cancelSettings] = await pool.execute(
+      'SELECT value FROM setting WHERE name = ?',
+      ['cancel_bank']
+    );
+
+    // If setting exists and is set to false, deny cancellation
+    if (cancelSettings.length > 0 && cancelSettings[0].value === 'false') {
+      return res.status(403).json({ error: 'Hủy giao dịch rút tiền đã bị tắt bởi quản trị viên' });
+    }
+
     // Verify transaction belongs to user and can be cancelled
     const [transactions] = await pool.execute(
       'SELECT id, status, type, amount FROM transactions WHERE id = ? AND user_id = ?',
